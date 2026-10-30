@@ -62,9 +62,28 @@ fn evaluate(
     }
     Binary(op, left, right) => {
       let a = evaluate(left, env, b, depth + 1)
+      if op == "||" && truth(a) {
+        return Boolean(true)
+      }
+      if op == "&&" && !truth(a) {
+        return Boolean(false)
+      }
       let c = evaluate(right, env, b, depth + 1)
       match op {
         "+" | "-" | "*" | "/" | "**" => arithmetic(op, a, c)
+        "||" | "&&" => Boolean(truth(c))
+        "in" => {
+          let found = match c {
+            Sequence(xs) => xs.contains(a)
+            Record(o) => o.contains(string_value(a))
+            Text(s) => s.contains(string_value(a)[:])
+            _ =>
+              raise Invalid(
+                "right operand of in must be array, string or object",
+              )
+          }
+          Boolean(found)
+        }
         "==" => Boolean(a == c)
         "!=" => Boolean(a != c)
         "<" => Boolean(compare_values(a, c) < 0)
