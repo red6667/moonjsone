@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "red6667/moonjsone"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn evaluate_expression(String, Json, now? : String, max_steps? : Int32, max_depth? : Int32, max_items? : Int32) -> Json raise TemplateError
+
+pub fn execute(String) -> String
+
+pub fn render(Json, Json, now? : String, max_steps? : Int32, max_depth? : Int32, max_items? : Int32) -> Json raise TemplateError
+
+// Errors
+pub suberror TemplateError {
+  Invalid(String)
+  Limit(String)
+} derive(@debug.Debug)
+pub fn TemplateError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+
+// Type aliases
+
+// Traits

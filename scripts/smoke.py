@@ -1,8 +1,8 @@
 """Run real examples and CLI failure isolation on the selected Moon backend."""
-import argparse,json,subprocess
+import argparse,json,subprocess,os
 p=argparse.ArgumentParser();p.add_argument('--target',default='wasm-gc');a=p.parse_args()
 def run(package,request=None):
- cmd=['moon','run',package,'--target',a.target]
+ cmd=[os.environ.get('MOON_EXECUTABLE','moon'),'run',package,'--target',a.target]
  if request is not None:cmd+=['--',json.dumps(request,separators=(',',':'))]
  result=subprocess.run(cmd,check=True,capture_output=True,encoding='utf8')
  return json.loads(result.stdout)
