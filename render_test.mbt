@@ -98,3 +98,29 @@ test "sorted multi match and exclusive switch" {
     Json::number(2),
   )
 }
+
+///|
+test "deep merge concatenates arrays and flatten depth is explicit" {
+  let c : Json = {}
+  assert_eq(
+    render(
+      (
+        {
+          "$mergeDeep": [
+            { "a": { "x": 1 }, "v": [1] },
+            { "a": { "y": 2 }, "v": [2] },
+          ],
+        } : Json),
+      c,
+    ),
+    ({ "a": { "x": 1, "y": 2 }, "v": [1, 2] } : Json),
+  )
+  assert_eq(
+    render(({ "$flatten": [[1, [2]], 3] } : Json), c),
+    ([1, [2], 3] : Json),
+  )
+  assert_eq(
+    render(({ "$flattenDeep": [[1, [2]], 3] } : Json), c),
+    ([1, 2, 3] : Json),
+  )
+}

@@ -1,6 +1,7 @@
 ///|
 let operator_names : Array[String] = [
-  "$eval", "$if", "$let", "$map", "$reduce", "$find", "$match", "$switch",
+  "$merge", "$mergeDeep", "$flatten", "$flattenDeep", "$eval", "$if", "$let", "$map",
+  "$reduce", "$find", "$match", "$switch",
 ]
 
 ///|
@@ -182,6 +183,27 @@ fn render_operator(
           }
         }
       }
+    }
+    "$merge" | "$mergeDeep" => {
+      allowed(o, [op])
+      let xs = array_value(render_value(required(o, op), env, b, depth + 1))
+      let mut result = Record(Map([]))
+      for x in xs {
+        if !(x is Record(_)) {
+          raise Invalid("merge elements must be objects")
+        }
+        result = merge_values(result, x, op == "$mergeDeep", b, depth + 1)
+      }
+      result
+    }
+    "$flatten" | "$flattenDeep" => {
+      allowed(o, [op])
+      let xs = array_value(render_value(required(o, op), env, b, depth + 1))
+      let out = []
+      for x in xs {
+        flatten_into(x, out, op == "$flattenDeep", b, depth + 1)
+      }
+      Sequence(out)
     }
     _ => raise Invalid("unknown template operator")
   }
