@@ -20,3 +20,16 @@ test "parser precedence and right associative powers" {
   assert_eq(parse_expr("[]", b), Items([]))
   assert_eq(parse_expr("{}", b), Fields([]))
 }
+
+///|
+test "parser chains call access and open slices" {
+  let b = { remaining: 10000, max_depth: 64, max_items: 10000, }
+  assert_true(
+    parse_expr("f(x)[1:].name", b)
+    is Access(
+      Slice(Call(Name("f"), [Name("x")]), Some(Literal(Numeric(1))), None),
+      Literal(Text("name")),
+      true
+    ),
+  )
+}

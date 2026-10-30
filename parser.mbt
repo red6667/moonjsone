@@ -4,6 +4,9 @@ priv enum Expr {
   Name(String)
   Unary(String, Expr)
   Binary(String, Expr, Expr)
+  Access(Expr, Expr, Bool)
+  Slice(Expr, Expr?, Expr?)
+  Call(Expr, Array[Expr])
   Items(Array[Expr])
   Fields(Array[(String, Expr)])
 } derive(Eq, Debug)
@@ -54,7 +57,7 @@ fn Parser::expr(
   depth : Int32,
 ) -> Expr raise TemplateError {
   self.budget.tick(depth)
-  let mut left = self.unit(depth + 1)
+  let mut left = self.postfix(depth + 1)
   while priority(self.kind()) >= minimum && priority(self.kind()) > 0 {
     let op = self.kind()
     self.pos += 1
@@ -128,4 +131,57 @@ fn parse_expr(source : String, b : Budget) -> Expr raise TemplateError {
   let result = p.expr(1, 0)
   ignore(p.take("end"))
   result
+}
+
+///|
+fn Parser::postfix(self : Parser, depth : Int32) -> Expr raise TemplateError {
+  let mut base = self.unit(depth + 1)
+  while true {
+    self.budget.tick(depth)
+    match self.kind() {
+      "." => {
+        self.pos += 1
+        let key = self.take("id").content
+        base = Access(base, Literal(Text(key)), true)
+      }
+      "[" => {
+        self.pos += 1
+        let start = if self.kind() == ":" {
+          None
+        } else {
+          Some(self.expr(1, depth + 1))
+        }
+        if self.kind() == ":" {
+          self.pos += 1
+          let end = if self.kind() == "]" {
+            None
+          } else {
+            Some(self.expr(1, depth + 1))
+          }
+          base = Slice(base, start, end)
+        } else {
+          match start {
+            Some(index) => base = Access(base, index, false)
+            None => raise Invalid("missing index")
+          }
+        }
+        ignore(self.take("]"))
+      }
+      "(" => {
+        self.pos += 1
+        let args = []
+        if self.kind() != ")" {
+          args.push(self.expr(1, depth + 1))
+          while self.kind() == "," {
+            self.pos += 1
+            args.push(self.expr(1, depth + 1))
+          }
+        }
+        ignore(self.take(")"))
+        base = Call(base, args)
+      }
+      _ => break
+    }
+  }
+  base
 }
