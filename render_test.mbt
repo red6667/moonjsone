@@ -2,7 +2,7 @@
 test "template interpolation, escaped keys and structured eval" {
   let c : Json = { "name": "world", "n": 3 }
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         {
           "hello": "Hi ${name}",
@@ -13,22 +13,28 @@ test "template interpolation, escaped keys and structured eval" {
     ),
     ({ "hello": "Hi world", "n": 4, "$literal": "${escaped}" } : Json),
   )
-  assert_eq(render(("value: ${{a: 2}.a}" : Json), c), Json::string("value: 2"))
+  assert_eq(
+    @moonjsone.render(("value: ${{a: 2}.a}" : Json), c),
+    Json::string("value: 2"),
+  )
 }
 
 ///|
 test "conditional omission and lexical let bindings" {
   let c : Json = { "x": 3 }
   assert_eq(
-    render(([1, { "$if": "false", "then": 2 }, 3] : Json), c),
+    @moonjsone.render(([1, { "$if": "false", "then": 2 }, 3] : Json), c),
     ([1, 3] : Json),
   )
   assert_eq(
-    render(({ "a": { "$if": "false", "then": 2 }, "b": 3 } : Json), c),
+    @moonjsone.render(
+      ({ "a": { "$if": "false", "then": 2 }, "b": 3 } : Json),
+      c,
+    ),
     ({ "b": 3 } : Json),
   )
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         { "$let": { "x": 4, "y": { "$eval": "x" } }, "in": { "$eval": "x+y" } } :
         Json),
@@ -37,7 +43,7 @@ test "conditional omission and lexical let bindings" {
     Json::number(7),
   )
   assert_eq(
-    render(
+    @moonjsone.render(
       ({ "$if": "true", "then": 1, "else": { "$eval": "missing" } } : Json),
       c,
     ),
@@ -49,11 +55,14 @@ test "conditional omission and lexical let bindings" {
 test "collection mapping reduction and first match" {
   let c : Json = {}
   assert_eq(
-    render(({ "$map": [2, 4], "each(x,i)": { "$eval": "x+i" } } : Json), c),
+    @moonjsone.render(
+      ({ "$map": [2, 4], "each(x,i)": { "$eval": "x+i" } } : Json),
+      c,
+    ),
     ([2, 5] : Json),
   )
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         {
           "$reduce": [2, 4, 6],
@@ -65,11 +74,11 @@ test "collection mapping reduction and first match" {
     Json::number(12),
   )
   assert_eq(
-    render(({ "$find": [2, 4, 6], "each(x)": "x>3" } : Json), c),
+    @moonjsone.render(({ "$find": [2, 4, 6], "each(x)": "x>3" } : Json), c),
     Json::number(4),
   )
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         { "$map": { "a": 2 }, "each(v,k)": { "${k}": { "$eval": "v+1" } } } :
         Json),
@@ -83,15 +92,18 @@ test "collection mapping reduction and first match" {
 test "sorted multi match and exclusive switch" {
   let c : Json = {}
   assert_eq(
-    render(({ "$match": { "2>1": "b", "1>0": "a", "false": "c" } } : Json), c),
+    @moonjsone.render(
+      ({ "$match": { "2>1": "b", "1>0": "a", "false": "c" } } : Json),
+      c,
+    ),
     (["a", "b"] : Json),
   )
   assert_eq(
-    render(({ "$switch": { "false": 2, "$default": 3 } } : Json), c),
+    @moonjsone.render(({ "$switch": { "false": 2, "$default": 3 } } : Json), c),
     Json::number(3),
   )
   assert_eq(
-    render(
+    @moonjsone.render(
       ({ "$switch": { "true": 2, "$default": { "$eval": "missing" } } } : Json),
       c,
     ),
@@ -103,7 +115,7 @@ test "sorted multi match and exclusive switch" {
 test "deep merge concatenates arrays and flatten depth is explicit" {
   let c : Json = {}
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         {
           "$mergeDeep": [
@@ -116,11 +128,11 @@ test "deep merge concatenates arrays and flatten depth is explicit" {
     ({ "a": { "x": 1, "y": 2 }, "v": [1, 2] } : Json),
   )
   assert_eq(
-    render(({ "$flatten": [[1, [2]], 3] } : Json), c),
+    @moonjsone.render(({ "$flatten": [[1, [2]], 3] } : Json), c),
     ([1, [2], 3] : Json),
   )
   assert_eq(
-    render(({ "$flattenDeep": [[1, [2]], 3] } : Json), c),
+    @moonjsone.render(({ "$flattenDeep": [[1, [2]], 3] } : Json), c),
     ([1, 2, 3] : Json),
   )
 }
@@ -129,7 +141,7 @@ test "deep merge concatenates arrays and flatten depth is explicit" {
 test "stable sorting, canonical JSON and relative time operator" {
   let c : Json = {}
   assert_eq(
-    render(
+    @moonjsone.render(
       (
         {
           "$sort": [{ "x": 2, "id": "a" }, { "x": 1 }, { "x": 2, "id": "b" }],
@@ -140,11 +152,18 @@ test "stable sorting, canonical JSON and relative time operator" {
     ([{ "x": 1 }, { "x": 2, "id": "a" }, { "x": 2, "id": "b" }] : Json),
   )
   assert_eq(
-    render(({ "$json": { "z": 3, "a": { "c": 1, "b": 2 } } } : Json), c),
+    @moonjsone.render(
+      ({ "$json": { "z": 3, "a": { "c": 1, "b": 2 } } } : Json),
+      c,
+    ),
     Json::string("{\"a\":{\"b\":2,\"c\":1},\"z\":3}"),
   )
   assert_eq(
-    render(({ "$fromNow": "2 days" } : Json), c, now="2017-01-19T16:27:20.974Z"),
+    @moonjsone.render(
+      ({ "$fromNow": "2 days" } : Json),
+      c,
+      now="2017-01-19T16:27:20.974Z",
+    ),
     Json::string("2017-01-21T16:27:20.974Z"),
   )
 }

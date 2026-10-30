@@ -20,7 +20,8 @@ fn interpolate(
       size += 2
       i += 3
     } else if i + 2 <= s.length() && s[i:i + 2] == "${" {
-      let source = s[i + 2:].to_string()
+      let closing = interpolation_end(s, i + 2, b)
+      let source = s[i + 2:closing + 1].to_string()
       let p = { tokens: tokenize(source, b), pos: 0, budget: b, }
       let e = p.expr(1, 0)
       let end = p.take("}").offset
@@ -30,9 +31,13 @@ fn interpolate(
       size += part.length()
       i += end + 3
     } else {
-      out.write_string(s[i:i + 1].to_string())
-      size += 1
+      let begin = i
       i += 1
+      while i < s.length() && s.code_unit_at(i).to_int() != 36 {
+        i += 1
+      }
+      out.write_string(s[begin:i].to_string())
+      size += i - begin
     }
     b.items(size)
   }
@@ -158,7 +163,7 @@ fn render_operator(
         _ => raise Invalid("match and switch require object")
       }
       let keys = choices.keys().collect()
-      keys.sort()
+      keys.sort_by(lexical)
       let out = []
       for key in keys {
         if op == "$switch" && key == "$default" {
@@ -254,4 +259,35 @@ pub fn render(
   let env = environment(context, b, now)
   let source = from_json(template, b, 0)
   to_json(render_value(source, env, b, 0), b, 0)
+}
+
+///|
+fn interpolation_end(
+  s : String,
+  start : Int32,
+  b : Budget,
+) -> Int32 raise TemplateError {
+  let mut nesting = 0
+  let mut quote = 0
+  for i = start; i < s.length(); i = i + 1 {
+    b.tick(0)
+    let c = s.code_unit_at(i).to_int()
+    if quote != 0 {
+      if c == quote {
+        quote = 0
+      }
+      continue
+    }
+    if c == 34 || c == 39 {
+      quote = c
+    } else if c == 123 {
+      nesting += 1
+    } else if c == 125 {
+      if nesting == 0 {
+        return i
+      }
+      nesting -= 1
+    }
+  }
+  raise Invalid("unterminated interpolation")
 }

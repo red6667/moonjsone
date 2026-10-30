@@ -102,9 +102,9 @@ fn builtin(
         match name {
           "lowercase" => s.to_lower()
           "uppercase" => s.to_upper()
-          "strip" => s.trim().to_string()
-          "lstrip" => s.trim_start().to_string()
-          _ => s.trim_end().to_string()
+          "strip" => s.trim(chars=" \t\n\r\u{0b}\u{0c}").to_string()
+          "lstrip" => s.trim_start(chars=" \t\n\r\u{0b}\u{0c}").to_string()
+          _ => s.trim_end(chars=" \t\n\r\u{0b}\u{0c}").to_string()
         },
       )
     }

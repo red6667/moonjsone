@@ -148,7 +148,7 @@ fn canonical(
   match v {
     Record(o) => {
       let keys = o.keys().collect()
-      keys.sort()
+      keys.sort_by(lexical)
       let parts = []
       for k in keys {
         let v = required(o, k)

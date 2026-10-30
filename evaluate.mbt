@@ -2,7 +2,7 @@
 fn compare_values(a : Value, b : Value) -> Int32 raise TemplateError {
   match (a, b) {
     (Numeric(x), Numeric(y)) => if x < y { -1 } else if x > y { 1 } else { 0 }
-    (Text(x), Text(y)) => x.compare(y)
+    (Text(x), Text(y)) => lexical(x, y)
     _ => raise Invalid("comparison requires two numbers or two strings")
   }
 }
@@ -211,4 +211,21 @@ fn slice_bound(v : Int32?, default : Int32, size : Int32) -> Int32 {
   } else {
     i
   }
+}
+
+///|
+fn lexical(a : String, b : String) -> Int32 {
+  let xs = a.to_array()
+  let ys = b.to_array()
+  for i = 0; i < Int32::min(xs.length(), ys.length()); i = i + 1 {
+    let x = xs[i].to_int()
+    let y = ys[i].to_int()
+    if x < y {
+      return -1
+    }
+    if x > y {
+      return 1
+    }
+  }
+  xs.length().compare(ys.length())
 }
