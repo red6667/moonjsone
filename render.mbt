@@ -1,6 +1,6 @@
 ///|
 let operator_names : Array[String] = [
-  "$eval", "$if", "$let", "$map", "$reduce", "$find",
+  "$eval", "$if", "$let", "$map", "$reduce", "$find", "$match", "$switch",
 ]
 
 ///|
@@ -150,6 +150,39 @@ fn render_operator(
       render_value(required(o, "in"), child, b, depth + 1)
     }
     "$map" | "$reduce" | "$find" => render_collection(op, o, env, b, depth + 1)
+    "$match" | "$switch" => {
+      allowed(o, [op])
+      let choices = match required(o, op) {
+        Record(x) => x
+        _ => raise Invalid("match and switch require object")
+      }
+      let keys = choices.keys().collect()
+      keys.sort()
+      let out = []
+      for key in keys {
+        if op == "$switch" && key == "$default" {
+          continue
+        }
+        if truth(eval_source(key, env, b)) {
+          out.push(render_value(required(choices, key), env, b, depth + 1))
+        }
+      }
+      if op == "$match" {
+        Sequence(out)
+      } else {
+        if out.length() > 1 {
+          raise Invalid("switch has multiple matching conditions")
+        }
+        if out.length() == 1 {
+          out[0]
+        } else {
+          match choices.get("$default") {
+            Some(v) => render_value(v, env, b, depth + 1)
+            None => Omit
+          }
+        }
+      }
+    }
     _ => raise Invalid("unknown template operator")
   }
 }

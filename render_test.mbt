@@ -78,3 +78,23 @@ test "collection mapping reduction and first match" {
     ({ "a": 3 } : Json),
   )
 }
+
+///|
+test "sorted multi match and exclusive switch" {
+  let c : Json = {}
+  assert_eq(
+    render(({ "$match": { "2>1": "b", "1>0": "a", "false": "c" } } : Json), c),
+    (["a", "b"] : Json),
+  )
+  assert_eq(
+    render(({ "$switch": { "false": 2, "$default": 3 } } : Json), c),
+    Json::number(3),
+  )
+  assert_eq(
+    render(
+      ({ "$switch": { "true": 2, "$default": { "$eval": "missing" } } } : Json),
+      c,
+    ),
+    Json::number(2),
+  )
+}
