@@ -1,7 +1,7 @@
 ///|
 let operator_names : Array[String] = [
-  "$merge", "$mergeDeep", "$flatten", "$flattenDeep", "$eval", "$if", "$let", "$map",
-  "$reduce", "$find", "$match", "$switch",
+  "$sort", "$reverse", "$json", "$fromNow", "$merge", "$mergeDeep", "$flatten", "$flattenDeep",
+  "$eval", "$if", "$let", "$map", "$reduce", "$find", "$match", "$switch",
 ]
 
 ///|
@@ -204,6 +204,34 @@ fn render_operator(
         flatten_into(x, out, op == "$flattenDeep", b, depth + 1)
       }
       Sequence(out)
+    }
+    "$reverse" => {
+      allowed(o, [op])
+      Sequence(
+        array_value(render_value(required(o, op), env, b, depth + 1)).rev(),
+      )
+    }
+    "$sort" => sort_template(o, env, b, depth + 1)
+    "$json" => {
+      allowed(o, [op])
+      Text(
+        canonical(
+          render_value(required(o, op), env, b, depth + 1),
+          b,
+          depth + 1,
+        ),
+      )
+    }
+    "$fromNow" => {
+      allowed(o, [op, "from"])
+      let offset = string_value(
+        render_value(required(o, op), env, b, depth + 1),
+      )
+      let reference = match o.get("from") {
+        Some(v) => string_value(render_value(v, env, b, depth + 1))
+        None => string_value(env.get("now").or(Nil))
+      }
+      Text(relative_time(offset, reference, b))
     }
     _ => raise Invalid("unknown template operator")
   }

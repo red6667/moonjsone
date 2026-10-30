@@ -124,3 +124,27 @@ test "deep merge concatenates arrays and flatten depth is explicit" {
     ([1, 2, 3] : Json),
   )
 }
+
+///|
+test "stable sorting, canonical JSON and relative time operator" {
+  let c : Json = {}
+  assert_eq(
+    render(
+      (
+        {
+          "$sort": [{ "x": 2, "id": "a" }, { "x": 1 }, { "x": 2, "id": "b" }],
+          "by(v)": "v.x",
+        } : Json),
+      c,
+    ),
+    ([{ "x": 1 }, { "x": 2, "id": "a" }, { "x": 2, "id": "b" }] : Json),
+  )
+  assert_eq(
+    render(({ "$json": { "z": 3, "a": { "c": 1, "b": 2 } } } : Json), c),
+    Json::string("{\"a\":{\"b\":2,\"c\":1},\"z\":3}"),
+  )
+  assert_eq(
+    render(({ "$fromNow": "2 days" } : Json), c, now="2017-01-19T16:27:20.974Z"),
+    Json::string("2017-01-21T16:27:20.974Z"),
+  )
+}
