@@ -31,7 +31,7 @@
 |配置读取/HOCON|uiwcvb/hocon0.25.0和moonbitstack/moonconf0.1.0均提供HOCON语义；前者实际README/接口/源码已查看|直接重合，淘汰|
 |观测/OpenMetrics|JYPeng487/moonopenmetrics0.1.1有解析/验证/编码/合并，且有Prometheus SDK；已查看前者接口/源码/测试|直接重合，淘汰|
 |媒体/字幕|MaoDingA/moonpost0.2.1提供SRT/WebVTT/ASS解析、转换、重定时、QC；MoonCakes实际文档和仓库元信息已获取，已有注册表源码证据|核心任务重合，淘汰|
-|结构化模板/JSON-e|未检出同名实现；JSONata/Jsonnet/文本模板有较强邻近性，详见下表|建议方向；待用户确认与最终反向门禁|
+|结构化模板/JSON-e|未检出同名实现；JSONata/Jsonnet/文本模板有较强邻近性，详见下表|用户确认；完成固定来源与反向门禁后实现|
 
 ## 语义邻近矩阵
 
@@ -52,3 +52,11 @@ GitHub仓库搜索："json-e" language:MoonBit、jsone language:MoonBit、"json-
 
 永久注册表对json-e/jsone/jsonnet无匹配；moonata已有登记；文本模板有多条；已读取相邻记录。此处无权宣称全网唯一、最终查重通过或主办方认可。用户确认后，需先补齐README命中核对、模板核心行为反向查重，并在固定注册表锁内重新查重与原子预留；发现成熟直接替代即暂停汇报，不强行实施。
 
+
+## 实施前补充与发布前复核（2026-10-30）
+
+已逐项查看三个 README 命中的上下文，均未提供可替代的 JSON-e 解释器；反向查找 flattenDeep、fromNow 与 JSON-e 语法行为未发现成熟直接替代。固定相邻项目的接口、源码与测试已抽查，永久注册表在排他锁内重新读取并预留 MoonJSONE。用户随后确认方向，项目才开始实现。上文的“待确认”“后续核对”是初选时记录，本节记录其完成状态。
+
+发布前再次执行 GitHub 仓库搜索：`"json-e" language:MoonBit`、`jsone language:MoonBit` 均返回 total_count=0、incomplete_results=false。再次执行 MoonCakes 的 json-e/jsone 搜索（各 limit100），结果为宽泛模糊匹配；复核其中模板、JSON 处理邻居，未检出 JSON-e 规范解释器。达到数量上限，因此不把零同名或模糊列表当作全生态唯一证明。完整原始结果保留于本地交付证据，公开本摘要。
+
+结论：在所核查范围内未发现维护良好、能直接运行 JSON-e 模板对象及其规范语料的 MoonBit 实现；继续交付本项目。已有 Jsonnet/JSONata 用户不必为通用 JSON 转换迁移，本项目的必要性是直接复用 JSON-e 模板和语义。该结论不是主办方的查重裁决。
