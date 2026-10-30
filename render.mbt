@@ -1,5 +1,5 @@
 ///|
-let operator_names : Array[String] = ["$eval"]
+let operator_names : Array[String] = ["$eval", "$if", "$let"]
 
 ///|
 fn interpolate(
@@ -118,6 +118,34 @@ fn render_operator(
     "$eval" => {
       allowed(o, [op])
       eval_source(string_value(required(o, op)), env, b)
+    }
+    "$if" => {
+      allowed(o, [op, "then", "else"])
+      let condition = eval_source(string_value(required(o, op)), env, b)
+      let branch = if truth(condition) { "then" } else { "else" }
+      match o.get(branch) {
+        Some(v) => render_value(v, env, b, depth + 1)
+        None => Omit
+      }
+    }
+    "$let" => {
+      allowed(o, [op, "in"])
+      if !(required(o, op) is Record(_)) {
+        raise Invalid("$let requires literal object")
+      }
+      let bindings = render_value(required(o, op), env, b, depth + 1)
+      let child = env.copy()
+      match bindings {
+        Record(values) =>
+          for k, v in values {
+            if !identifier(k) {
+              raise Invalid("invalid let binding")
+            }
+            child[k] = v
+          }
+        _ => raise Invalid("let bindings must render object")
+      }
+      render_value(required(o, "in"), child, b, depth + 1)
     }
     _ => raise Invalid("unknown template operator")
   }
