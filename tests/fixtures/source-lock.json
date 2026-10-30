@@ -1,0 +1,9 @@
+{
+  "revision": "87167b21ed1a4040cc48cfabb61a62c77e6ac0fd",
+  "license": "MPL-2.0",
+  "files": {
+    "tests/fixtures/specification.json": "528dedf2bd35da8a37948ec69e9db9635041759258f0ed68205446be98d67951",
+    "tests/fixtures/upstream-specification.yml": "969ed4c530cd60917e8598e0f29c2e81ea2cd26c267afce81605728baa7a0991",
+    "tests/fixtures/reference-summary.json": "e8489c72faa5a96cfdfa1cfbdf1b72a8917d16935e8f99e782e3d93a7b4365e8"
+  }
+}

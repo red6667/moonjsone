@@ -1,0 +1,10 @@
+{
+  "reference": "json-e/json-e",
+  "revision": "87167b21ed1a4040cc48cfabb61a62c77e6ac0fd",
+  "corpus_cases": 1175,
+  "python_reference_passed": 1175,
+  "javascript_reference_passed": 1175,
+  "comparison": "structural result equality or expected rejection; exact error messages are not compared",
+  "python_results_sha256": "227ec42deb2f19cf0e05a77188bb58240b3247d94b7a3740bf96e2f296bd0933",
+  "javascript_results_sha256": "758a60c07cd0485dfca389d5e31d0dd1e2974c7aaff3007f25f1ff9c73c75b1c"
+}
