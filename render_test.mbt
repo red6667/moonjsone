@@ -44,3 +44,37 @@ test "conditional omission and lexical let bindings" {
     Json::number(1),
   )
 }
+
+///|
+test "collection mapping reduction and first match" {
+  let c : Json = {}
+  assert_eq(
+    render(({ "$map": [2, 4], "each(x,i)": { "$eval": "x+i" } } : Json), c),
+    ([2, 5] : Json),
+  )
+  assert_eq(
+    render(
+      (
+        {
+          "$reduce": [2, 4, 6],
+          "initial": 0,
+          "each(acc,x)": { "$eval": "acc+x" },
+        } : Json),
+      c,
+    ),
+    Json::number(12),
+  )
+  assert_eq(
+    render(({ "$find": [2, 4, 6], "each(x)": "x>3" } : Json), c),
+    Json::number(4),
+  )
+  assert_eq(
+    render(
+      (
+        { "$map": { "a": 2 }, "each(v,k)": { "${k}": { "$eval": "v+1" } } } :
+        Json),
+      c,
+    ),
+    ({ "a": 3 } : Json),
+  )
+}

@@ -1,5 +1,7 @@
 ///|
-let operator_names : Array[String] = ["$eval", "$if", "$let"]
+let operator_names : Array[String] = [
+  "$eval", "$if", "$let", "$map", "$reduce", "$find",
+]
 
 ///|
 fn interpolate(
@@ -147,6 +149,7 @@ fn render_operator(
       }
       render_value(required(o, "in"), child, b, depth + 1)
     }
+    "$map" | "$reduce" | "$find" => render_collection(op, o, env, b, depth + 1)
     _ => raise Invalid("unknown template operator")
   }
 }
