@@ -171,7 +171,14 @@ fn evaluate(
         _ => raise Invalid("slice requires string or array")
       }
     }
-    Call(_, _) => raise Invalid("function unavailable")
+    Call(fnexpr, args) => {
+      let func = evaluate(fnexpr, env, b, depth + 1)
+      let args = args.map(x => evaluate(x, env, b, depth + 1))
+      match func {
+        Function(name) => builtin(name, args, env, b)
+        _ => raise Invalid("value is not callable")
+      }
+    }
   }
 }
 
