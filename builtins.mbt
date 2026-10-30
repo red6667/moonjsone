@@ -2,7 +2,7 @@
 let builtin_names : Array[String] = [
   "lowercase", "uppercase", "strip", "lstrip", "rstrip", "len", "str", "number",
   "join", "split", "typeof", "defined", "min", "max", "sqrt", "abs", "ceil", "floor",
-  "range",
+  "range", "fromNow",
 ]
 
 ///|
@@ -181,6 +181,15 @@ fn builtin(
     "defined" => {
       arity(args, 1, 1)
       Boolean(env.contains(string_value(args[0])))
+    }
+    "fromNow" => {
+      arity(args, 1, 2)
+      let reference = if args.length() == 2 {
+        string_value(args[1])
+      } else {
+        string_value(env.get("now").or(Nil))
+      }
+      Text(relative_time(string_value(args[0]), reference, b))
     }
     _ => raise Invalid("unknown builtin: " + name)
   }
