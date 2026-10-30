@@ -19,3 +19,17 @@ test "logical operators return booleans and short circuit errors" {
   assert_eq(eval_source("3 in xs", env, b), Boolean(true))
   assert_eq(eval_source("'ph' in s", env, b), Boolean(true))
 }
+
+///|
+test "collection literals, missing properties and negative slices" {
+  let b = { remaining: 10000, max_depth: 100, max_items: 10000, }
+  let env = Map([])
+  assert_eq(eval_source("[2,3,4][-1]", env, b), Numeric(4))
+  assert_eq(eval_source("{a:2}.a", env, b), Numeric(2))
+  assert_eq(eval_source("{}['missing']", env, b), Nil)
+  assert_eq(
+    eval_source("[2,3,4][-99:2]", env, b),
+    Sequence([Numeric(2), Numeric(3)]),
+  )
+  assert_eq(eval_source("'hello'[1:-1]", env, b), Text("ell"))
+}

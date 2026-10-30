@@ -93,7 +93,85 @@ fn evaluate(
         _ => raise Invalid("operator not available")
       }
     }
-    _ => raise Invalid("expression not available")
+    Items(xs) => {
+      b.items(xs.length())
+      Sequence(xs.map(x => evaluate(x, env, b, depth + 1)))
+    }
+    Fields(fields) => {
+      let out = Map([])
+      for (k, v) in fields {
+        out[k] = evaluate(v, env, b, depth + 1)
+      }
+      Record(out)
+    }
+    Access(base, key, dot) => {
+      let v = evaluate(base, env, b, depth + 1)
+      let k = evaluate(key, env, b, depth + 1)
+      match v {
+        Record(o) =>
+          match o.get(string_value(k)) {
+            Some(x) => x
+            None =>
+              if dot {
+                raise Invalid("missing object property")
+              } else {
+                Nil
+              }
+          }
+        Sequence(xs) => {
+          if dot {
+            raise Invalid("dot access requires object")
+          }
+          let i = index_value(k)
+          let i = if i < 0 { xs.length() + i } else { i }
+          if i < 0 || i >= xs.length() {
+            raise Invalid("index out of bounds")
+          }
+          xs[i]
+        }
+        Text(s) => {
+          if dot {
+            raise Invalid("dot access requires object")
+          }
+          let xs = s.to_array()
+          let i = index_value(k)
+          let i = if i < 0 { xs.length() + i } else { i }
+          if i < 0 || i >= xs.length() {
+            raise Invalid("index out of bounds")
+          }
+          Text(xs[i].to_string())
+        }
+        _ => raise Invalid("access requires collection")
+      }
+    }
+    Slice(base, start, end) => {
+      let v = evaluate(base, env, b, depth + 1)
+      let lo = start.map(x => index_value(evaluate(x, env, b, depth + 1)))
+      let hi = end.map(x => index_value(evaluate(x, env, b, depth + 1)))
+      match v {
+        Sequence(xs) => {
+          let l = slice_bound(lo, 0, xs.length())
+          let h = slice_bound(hi, xs.length(), xs.length())
+          let out = []
+          for i = l; i < h; i = i + 1 {
+            out.push(xs[i])
+          }
+          Sequence(out)
+        }
+        Text(s) => {
+          let xs = s.to_array()
+          let l = slice_bound(lo, 0, xs.length())
+          let h = slice_bound(hi, xs.length(), xs.length())
+          let out = StringBuilder::new()
+          for i = l; i < h; i = i + 1 {
+            out.write_char(xs[i])
+          }
+          Text(out.to_string())
+        }
+        _ => raise Invalid("slice requires string or array")
+      }
+    }
+    Call(_, _) => raise Invalid("function unavailable")
   }
 }
 
@@ -104,4 +182,26 @@ fn eval_source(
   b : Budget,
 ) -> Value raise TemplateError {
   evaluate(parse_expr(s, b), env, b, 0)
+}
+
+///|
+fn index_value(v : Value) -> Int32 raise TemplateError {
+  let n = numeric(v)
+  if n < -2147483647 || n > 2147483647 || n != n.to_int().to_double() {
+    raise Invalid("index must be a bounded integer")
+  }
+  n.to_int()
+}
+
+///|
+fn slice_bound(v : Int32?, default : Int32, size : Int32) -> Int32 {
+  let i = v.or(default)
+  let i = if i < 0 { size + i } else { i }
+  if i < 0 {
+    0
+  } else if i > size {
+    size
+  } else {
+    i
+  }
 }
