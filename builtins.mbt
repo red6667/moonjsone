@@ -1,6 +1,8 @@
 ///|
 let builtin_names : Array[String] = [
-  "min", "max", "sqrt", "abs", "ceil", "floor", "range",
+  "lowercase", "uppercase", "strip", "lstrip", "rstrip", "len", "str", "number",
+  "join", "split", "typeof", "defined", "min", "max", "sqrt", "abs", "ceil", "floor",
+  "range",
 ]
 
 ///|
@@ -42,7 +44,7 @@ fn arity(
 fn builtin(
   name : String,
   args : Array[Value],
-  _env : Map[String, Value],
+  env : Map[String, Value],
   b : Budget,
 ) -> Value raise TemplateError {
   b.tick(0)
@@ -93,6 +95,93 @@ fn builtin(
       }
       Sequence(out)
     }
+    "lowercase" | "uppercase" | "strip" | "lstrip" | "rstrip" => {
+      arity(args, 1, 1)
+      let s = string_value(args[0])
+      Text(
+        match name {
+          "lowercase" => s.to_lower()
+          "uppercase" => s.to_upper()
+          "strip" => s.trim().to_string()
+          "lstrip" => s.trim_start().to_string()
+          _ => s.trim_end().to_string()
+        },
+      )
+    }
+    "len" => {
+      arity(args, 1, 1)
+      let n = match args[0] {
+        Text(s) => s.to_array().length()
+        Sequence(xs) => xs.length()
+        _ => raise Invalid("len requires string or array")
+      }
+      Numeric(n.to_double())
+    }
+    "str" => {
+      arity(args, 1, 1)
+      Text(text(args[0]))
+    }
+    "number" => {
+      arity(args, 1, 1)
+      let s = string_value(args[0]).trim().to_string()
+      let n = @string.parse_double(s[:]) catch {
+        _ => raise Invalid("invalid numeric string")
+      }
+      if n.is_nan() || n.is_inf() {
+        raise Invalid("non-finite number")
+      }
+      Numeric(n)
+    }
+    "join" => {
+      arity(args, 2, 2)
+      let sep = string_or_number(args[1])
+      let xs = match args[0] {
+        Sequence(xs) => xs
+        _ => raise Invalid("join requires array")
+      }
+      let out = StringBuilder::new()
+      let mut size = 0
+      for i, x in xs {
+        if i > 0 {
+          out.write_string(sep)
+        }
+        let part = string_or_number(x)
+        size += part.length() + (if i > 0 { sep.length() } else { 0 })
+        b.items(size)
+        out.write_string(part)
+      }
+      Text(out.to_string())
+    }
+    "split" => {
+      arity(args, 2, 2)
+      let s = string_value(args[0])
+      let sep = string_or_number(args[1])
+      let parts = if sep == "" {
+        s.to_array().map(c => Text(c.to_string()))
+      } else {
+        s.split(sep[:]).map(x => Text(x.to_string())).collect()
+      }
+      b.items(parts.length())
+      Sequence(parts)
+    }
+    "typeof" => {
+      arity(args, 1, 1)
+      Text(
+        match args[0] {
+          Nil | Omit => "null"
+          Boolean(_) => "boolean"
+          Numeric(_) => "number"
+          Text(_) => "string"
+          Sequence(_) => "array"
+          Record(_) => "object"
+          Function(_) => "function"
+        },
+      )
+    }
+    "defined" => {
+      arity(args, 1, 1)
+      Boolean(env.contains(string_value(args[0])))
+    }
     _ => raise Invalid("unknown builtin: " + name)
   }
 }
@@ -114,4 +203,12 @@ pub fn evaluate_expression(
   let b = { remaining: max_steps, max_depth, max_items, }
   let env = environment(context, b, now)
   to_json(eval_source(source, env, b), b, 0)
+}
+
+///|
+fn string_or_number(v : Value) -> String raise TemplateError {
+  match v {
+    Text(_) | Numeric(_) => text(v)
+    _ => raise Invalid("expected string or number")
+  }
 }

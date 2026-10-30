@@ -11,3 +11,28 @@ test "numeric builtins and descending bounded ranges" {
     Json::number(5),
   )
 }
+
+///|
+test "text, introspection and conversion builtins" {
+  let context : Json = { "x": 2 }
+  assert_eq(
+    evaluate_expression("join(split('abc',''),'-')", context),
+    Json::string("a-b-c"),
+  )
+  assert_eq(
+    evaluate_expression("uppercase(strip('  hello  '))", context),
+    Json::string("HELLO"),
+  )
+  assert_eq(
+    evaluate_expression("typeof(min)", context),
+    Json::string("function"),
+  )
+  assert_eq(
+    evaluate_expression("defined('x') && !(defined('y'))", context),
+    Json::boolean(true),
+  )
+  assert_eq(
+    evaluate_expression("number('12.5')+len('abc')", context),
+    Json::number(15.5),
+  )
+}
