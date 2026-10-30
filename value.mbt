@@ -6,6 +6,9 @@ pub suberror TemplateError {
 } derive(Debug)
 
 ///|
+pub extend TemplateError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 priv enum Value {
   Nil
   Boolean(Bool)

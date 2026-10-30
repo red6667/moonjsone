@@ -14,9 +14,9 @@ fn binder(
     raise Invalid("malformed binding property")
   }
   let names = k[prefix.length() + 1:k.length() - 1]
-    .to_string()
+    .to_owned()
     .split(",")
-    .map(x => x.trim().to_string())
+    .map(x => x.trim().to_owned())
     .collect()
   if names.length() < min_args || names.length() > max_args {
     raise Invalid("invalid binding argument count")

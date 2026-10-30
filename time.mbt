@@ -34,7 +34,7 @@ fn decimal_part(
 
 ///|
 fn offset_seconds(offset : String, b : Budget) -> Double raise TemplateError {
-  let s = offset.trim().to_string()
+  let s = offset.trim().to_owned()
   let mut i = 0
   let mut sign = 1.0
   if s.has_prefix("-") || s.has_prefix("+") {
@@ -70,7 +70,7 @@ fn offset_seconds(offset : String, b : Budget) -> Double raise TemplateError {
     while i < s.length() && alpha(s.code_unit_at(i).to_int()) {
       i += 1
     }
-    let unit = s[begin:i].to_string()
+    let unit = s[begin:i].to_owned()
     let (order, factor) = match unit {
       "years" | "year" | "yr" | "y" => (0, 31536000.0)
       "months" | "month" | "mo" => (1, 2592000.0)

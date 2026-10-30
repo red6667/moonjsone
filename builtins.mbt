@@ -102,9 +102,9 @@ fn builtin(
         match name {
           "lowercase" => s.to_lower()
           "uppercase" => s.to_upper()
-          "strip" => s.trim(chars=" \t\n\r\u{0b}\u{0c}").to_string()
-          "lstrip" => s.trim_start(chars=" \t\n\r\u{0b}\u{0c}").to_string()
-          _ => s.trim_end(chars=" \t\n\r\u{0b}\u{0c}").to_string()
+          "strip" => s.trim(chars=" \t\n\r\u{0b}\u{0c}").to_owned()
+          "lstrip" => s.trim_start(chars=" \t\n\r\u{0b}\u{0c}").to_owned()
+          _ => s.trim_end(chars=" \t\n\r\u{0b}\u{0c}").to_owned()
         },
       )
     }
@@ -123,7 +123,7 @@ fn builtin(
     }
     "number" => {
       arity(args, 1, 1)
-      let s = string_value(args[0]).trim().to_string()
+      let s = string_value(args[0]).trim().to_owned()
       let n = @string.parse_double(s[:]) catch {
         _ => raise Invalid("invalid numeric string")
       }
@@ -139,7 +139,7 @@ fn builtin(
         Sequence(xs) => xs
         _ => raise Invalid("join requires array")
       }
-      let out = StringBuilder::new()
+      let out = StringBuilder()
       let mut size = 0
       for i, x in xs {
         if i > 0 {
@@ -159,7 +159,7 @@ fn builtin(
       let parts = if sep == "" {
         s.to_array().map(c => Text(c.to_string()))
       } else {
-        s.split(sep[:]).map(x => Text(x.to_string())).collect()
+        s.split(sep[:]).map(x => Text(x.to_owned())).collect()
       }
       b.items(parts.length())
       Sequence(parts)
@@ -187,7 +187,7 @@ fn builtin(
       let reference = if args.length() == 2 {
         string_value(args[1])
       } else {
-        string_value(env.get("now").or(Nil))
+        string_value(env.get("now").unwrap_or(Nil))
       }
       Text(relative_time(string_value(args[0]), reference, b))
     }

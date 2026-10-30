@@ -1,6 +1,6 @@
 ///|
 test "numeric builtins and descending bounded ranges" {
-  let context : Json = {}
+  let context : Json = Json::empty_object()
   assert_eq(
     @moonjsone.evaluate_expression("min(3,1,7)+max(2,4)", context),
     Json::number(5),

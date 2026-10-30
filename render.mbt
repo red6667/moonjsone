@@ -10,7 +10,7 @@ fn interpolate(
   env : Map[String, Value],
   b : Budget,
 ) -> String raise TemplateError {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut size = 0
   let mut i = 0
   while i < s.length() {
@@ -21,7 +21,7 @@ fn interpolate(
       i += 3
     } else if i + 2 <= s.length() && s[i:i + 2] == "${" {
       let closing = interpolation_end(s, i + 2, b)
-      let source = s[i + 2:closing + 1].to_string()
+      let source = s[i + 2:closing + 1].to_owned()
       let p = { tokens: tokenize(source, b), pos: 0, budget: b, }
       let e = p.expr(1, 0)
       let end = p.take("}").offset
@@ -36,7 +36,7 @@ fn interpolate(
       while i < s.length() && s.code_unit_at(i).to_int() != 36 {
         i += 1
       }
-      out.write_string(s[begin:i].to_string())
+      out.write_string(s[begin:i].to_owned())
       size += i - begin
     }
     b.items(size)
@@ -95,9 +95,9 @@ fn render_value(
       let out = Map([])
       for k, v in o {
         let key = if k.has_prefix("$$") {
-          k[1:].to_string()
+          k[1:].to_owned()
         } else {
-          if k.has_prefix("$") && identifier(k[1:].to_string()) {
+          if k.has_prefix("$") && identifier(k[1:].to_owned()) {
             raise Invalid("reserved dollar property")
           }
           interpolate(k, env, b)
@@ -234,7 +234,7 @@ fn render_operator(
       )
       let reference = match o.get("from") {
         Some(v) => string_value(render_value(v, env, b, depth + 1))
-        None => string_value(env.get("now").or(Nil))
+        None => string_value(env.get("now").unwrap_or(Nil))
       }
       Text(relative_time(offset, reference, b))
     }

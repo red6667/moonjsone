@@ -53,7 +53,7 @@ test "conditional omission and lexical let bindings" {
 
 ///|
 test "collection mapping reduction and first match" {
-  let c : Json = {}
+  let c : Json = Json::empty_object()
   assert_eq(
     @moonjsone.render(
       ({ "$map": [2, 4], "each(x,i)": { "$eval": "x+i" } } : Json),
@@ -90,7 +90,7 @@ test "collection mapping reduction and first match" {
 
 ///|
 test "sorted multi match and exclusive switch" {
-  let c : Json = {}
+  let c : Json = Json::empty_object()
   assert_eq(
     @moonjsone.render(
       ({ "$match": { "2>1": "b", "1>0": "a", "false": "c" } } : Json),
@@ -113,7 +113,7 @@ test "sorted multi match and exclusive switch" {
 
 ///|
 test "deep merge concatenates arrays and flatten depth is explicit" {
-  let c : Json = {}
+  let c : Json = Json::empty_object()
   assert_eq(
     @moonjsone.render(
       (
@@ -139,7 +139,7 @@ test "deep merge concatenates arrays and flatten depth is explicit" {
 
 ///|
 test "stable sorting, canonical JSON and relative time operator" {
-  let c : Json = {}
+  let c : Json = Json::empty_object()
   assert_eq(
     @moonjsone.render(
       (

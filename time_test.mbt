@@ -1,6 +1,6 @@
 ///|
 test "relative dates cross leap days and year boundaries" {
-  let c : Json = {}
+  let c : Json = Json::empty_object()
   assert_eq(
     @moonjsone.evaluate_expression(
       "fromNow('1 day')",

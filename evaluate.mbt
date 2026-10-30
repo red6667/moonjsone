@@ -162,7 +162,7 @@ fn evaluate(
           let xs = s.to_array()
           let l = slice_bound(lo, 0, xs.length())
           let h = slice_bound(hi, xs.length(), xs.length())
-          let out = StringBuilder::new()
+          let out = StringBuilder()
           for i = l; i < h; i = i + 1 {
             out.write_char(xs[i])
           }
@@ -202,7 +202,7 @@ fn index_value(v : Value) -> Int32 raise TemplateError {
 
 ///|
 fn slice_bound(v : Int32?, default : Int32, size : Int32) -> Int32 {
-  let i = v.or(default)
+  let i = v.unwrap_or(default)
   let i = if i < 0 { size + i } else { i }
   if i < 0 {
     0

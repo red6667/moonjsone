@@ -3,7 +3,7 @@ priv struct Token {
   kind : String
   content : String
   offset : Int32
-} derive(Eq)
+}
 
 ///|
 fn digit(c : Int32) -> Bool {
@@ -43,7 +43,7 @@ fn tokenize(s : String, b : Budget) -> Array[Token] raise TemplateError {
       }
       out.push({
         kind: "number",
-        content: s.substring(start~, end=i),
+        content: s[start:i].to_owned(),
         offset: start,
       })
     } else if alpha(c) {
@@ -55,7 +55,7 @@ fn tokenize(s : String, b : Budget) -> Array[Token] raise TemplateError {
             ) {
         i += 1
       }
-      let word = s.substring(start~, end=i)
+      let word = s[start:i].to_owned()
       let kind = match word {
         "true" | "false" | "null" | "in" => word
         _ => "id"
@@ -71,23 +71,19 @@ fn tokenize(s : String, b : Budget) -> Array[Token] raise TemplateError {
       }
       out.push({
         kind: "string",
-        content: s.substring(start=start + 1, end=i),
+        content: s[start + 1:i].to_owned(),
         offset: start,
       })
       i += 1
     } else {
-      let two = if i + 1 < s.length() {
-        s.substring(start=i, end=i + 2)
-      } else {
-        ""
-      }
+      let two = if i + 1 < s.length() { s[i:i + 2].to_owned() } else { "" }
       let op = match two {
         "**" | "<=" | ">=" | "==" | "!=" | "&&" | "||" => {
           i += 2
           two
         }
         _ => {
-          let one = s.substring(start=i, end=i + 1)
+          let one = s[i:i + 1].to_owned()
           if ![
               "+", "-", "*", "/", "!", "<", ">", "(", ")", "[", "]", "{", "}", ":",
               ",", ".",
