@@ -1,0 +1,4 @@
+MoonJSONE is a MoonBit reimplementation of JSON-e.
+Behavior and test data reference json-e/json-e, revision 87167b21ed1a4040cc48cfabb61a62c77e6ac0fd.
+Copyright JSON-e contributors. MPL-2.0. Upstream https://github.com/json-e/json-e
+MoonBit implementation copyright 2026 red6667, MPL-2.0.
