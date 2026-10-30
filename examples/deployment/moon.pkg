@@ -1,0 +1,6 @@
+import {
+  "red6667/moonjsone",
+  "moonbitlang/core/json",
+}
+
+pkgtype(kind: "executable")

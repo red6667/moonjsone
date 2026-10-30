@@ -1,0 +1,98 @@
+{
+  "deployment": {
+    "context": {
+      "service": "catalog",
+      "regions": [
+        "east",
+        "west"
+      ],
+      "replicas": 3
+    },
+    "template": {
+      "$map": {
+        "$eval": "regions"
+      },
+      "each(region)": {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+          "name": "${service}-${region}"
+        },
+        "spec": {
+          "replicas": {
+            "$eval": "replicas"
+          },
+          "template": {
+            "spec": {
+              "containers": [
+                {
+                  "name": "${service}",
+                  "image": "registry/${service}:1.0",
+                  "env": [
+                    {
+                      "name": "REGION",
+                      "value": "${region}"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "matrix": {
+    "context": {
+      "os": [
+        "linux",
+        "windows"
+      ],
+      "versions": [
+        20,
+        22
+      ]
+    },
+    "template": {
+      "$flatten": {
+        "$map": {
+          "$eval": "os"
+        },
+        "each(platform)": {
+          "$map": {
+            "$eval": "versions"
+          },
+          "each(version)": {
+            "job": "test-${platform}-${version}",
+            "os": {
+              "$eval": "platform"
+            },
+            "runtime": {
+              "$eval": "version"
+            }
+          }
+        }
+      }
+    }
+  },
+  "payloads": {
+    "context": {
+      "count": 3,
+      "prefix": "case"
+    },
+    "template": {
+      "$map": {
+        "$eval": "range(0,count)"
+      },
+      "each(i)": {
+        "id": "${prefix}-${i}",
+        "amount": {
+          "$eval": "(i+1)*10"
+        },
+        "enabled": {
+          "$eval": "i<2"
+        }
+      }
+    }
+  }
+}
