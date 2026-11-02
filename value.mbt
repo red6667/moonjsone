@@ -53,7 +53,10 @@ fn from_json(j : Json, b : Budget, depth : Int32) -> Value raise TemplateError {
     True => Boolean(true)
     False => Boolean(false)
     Number(n, ..) => Numeric(n)
-    String(s) => Text(s)
+    String(s) => {
+      b.items(s.length())
+      Text(s)
+    }
     Array(a) => {
       b.items(a.length())
       Sequence(a.map(x => from_json(x, b, depth + 1)))

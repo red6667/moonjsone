@@ -8,10 +8,22 @@ fn compare_values(a : Value, b : Value) -> Int32 raise TemplateError {
 }
 
 ///|
-fn arithmetic(op : String, a : Value, b : Value) -> Value raise TemplateError {
+fn arithmetic(
+  op : String,
+  a : Value,
+  b : Value,
+  budget : Budget,
+) -> Value raise TemplateError {
   if op == "+" {
     match (a, b) {
-      (Text(x), Text(y)) => return Text(x + y)
+      (Text(x), Text(y)) => {
+        budget.items(x.length())
+        budget.items(y.length())
+        if x.length() > budget.max_items - y.length() {
+          raise Limit("collection size limit")
+        }
+        return Text(x + y)
+      }
       _ => ()
     }
   }
@@ -44,7 +56,7 @@ fn evaluate(
   depth : Int32,
 ) -> Value raise TemplateError {
   b.tick(depth)
-  match e {
+  let result = match e {
     Literal(v) => v
     Name(name) =>
       match env.get(name) {
@@ -70,7 +82,7 @@ fn evaluate(
       }
       let c = evaluate(right, env, b, depth + 1)
       match op {
-        "+" | "-" | "*" | "/" | "**" => arithmetic(op, a, c)
+        "+" | "-" | "*" | "/" | "**" => arithmetic(op, a, c, b)
         "||" | "&&" => Boolean(truth(c))
         "in" => {
           let found = match c {
@@ -180,6 +192,13 @@ fn evaluate(
       }
     }
   }
+  match result {
+    Text(s) => b.items(s.length())
+    Sequence(xs) => b.items(xs.length())
+    Record(o) => b.items(o.length())
+    _ => ()
+  }
+  result
 }
 
 ///|
